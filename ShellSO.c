@@ -16,9 +16,9 @@ pid_t pidlista[256];
 char i;												
 void get_cmd();								
 void convert_cmd();						
-void c_shell();							
-void log_handle(int sig);			
+void c_shell();									
 void addpath(char *argv[]);
+void cdir(char *argv[]);
 int main(){
 
 
@@ -38,21 +38,26 @@ void c_shell(){
         if(!strcmp("exit", cmd)) kill(0, SIGKILL);
 
 		convert_cmd();
-
-
-		pid = fork();
-		if(-1 == pid){
-			printf("failed to create a child\n");
-		}
-		else if(0 == pid){
-			// printf("Filho");
-			// execute a command
-			if(!strcmp("path", argv[0]))addpath(argv);
-			execvp(argv[0], argv);
-		}
+		if(!strcmp("path", argv[0]))addpath(argv);
 		else{
-			// printf("Pai");
-			if(NULL == argv[i]) waitpid(pid, NULL, 0);
+		
+		if(!strcmp("cd", argv[0]))cdir(argv);
+		else{
+
+				pid = fork();
+				if(-1 == pid){
+					printf("failed to create a child\n");
+				}
+				else if(0 == pid){
+					printf("Filho");
+					// execute a command
+					execvp(argv[0], argv);
+				}
+				else{
+					// printf("Pai");
+					if(NULL == argv[i]) waitpid(pid, NULL, 0);
+				}
+			}
 		}
 	}
 }
@@ -104,6 +109,15 @@ void addpath(char *argv[]){
         perror("setenv");
         return;
     }
+	printf("%s adicionado ao path\n",path_ng);
 	//printf("NOVO PATH: %s\n", getenv("PATH"));
 	
+}
+
+void cdir(char *argv[]){
+	const char *dir = argv[1];
+	if (chdir(dir) != 0) {
+        perror("chdir");
+		return;
+	}
 }
