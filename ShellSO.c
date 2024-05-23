@@ -6,118 +6,150 @@
 #include <unistd.h>
 #include <signal.h>
 
-#define	MAX_SIZE_CMD	256
-#define	MAX_SIZE_ARG	16
+#define MAX_SIZE_CMD 256
+#define MAX_SIZE_ARG 16
 
-char cmd[MAX_SIZE_CMD];				
-char *argv[MAX_SIZE_ARG];			
-pid_t pid;										
-pid_t pidlista[256];							
-char i;												
-void get_cmd();								
-void convert_cmd();						
-void c_shell();									
+char cmd[MAX_SIZE_CMD];
+char *argv[MAX_SIZE_ARG];
+pid_t pid;
+pid_t pidlista[256];
+int i;
+
+void get_cmd();
+void convert_cmd();
+void c_shell();
 void addpath(char *argv[]);
 void cdir(char *argv[]);
-int main(){
+void batch(const char *filename);
 
+int main() {
+    while (1) {
+        get_cmd();
 
-	c_shell();
-
-	return 0;
-}
-
-void c_shell(){
-	while(1){
-
-
-		get_cmd();
-
-		if(!strcmp("", cmd)) continue;
-
-        if(!strcmp("exit", cmd)) kill(0, SIGKILL);
-
-		convert_cmd();
-		if(!strcmp("path", argv[0]))addpath(argv);
-		else{
-		
-		if(!strcmp("cd", argv[0]))cdir(argv);
-		else{
-
-				pid = fork();
-				if(-1 == pid){
-					printf("failed to create a child\n");
-				}
-				else if(0 == pid){
-					printf("Filho");
-					// execute a command
-					execvp(argv[0], argv);
-				}
-				else{
-					// printf("Pai");
-					if(NULL == argv[i]) waitpid(pid, NULL, 0);
-				}
-			}
-		}
-	}
-}
-
-void get_cmd(){
-	printf("@: ");
-	fgets(cmd, MAX_SIZE_CMD, stdin);
-
-	if ((strlen(cmd) > 0) && (cmd[strlen (cmd) - 1] == '\n'))
-        	cmd[strlen (cmd) - 1] = '\0';
-
-}
-
-void convert_cmd(){
-	char *ptr;
-	i = 0;
-	ptr = strtok(cmd, " ");
-	while(ptr != NULL){
-		//printf("%s\n", ptr);
-		argv[i] = ptr;
-		i++;
-		ptr = strtok(NULL, " ");
-	}
-
-	if(!strcmp("&", argv[i-1])){
-	argv[i-1] = NULL;
-	argv[i] = "&";
-	}else{
-	argv[i] = NULL;
-	}
-	//printf("%d\n", i);
-}
-
-
-void addpath(char *argv[]){
-
-	const char *path_og = getenv("PATH");
-	const char *path_ng = argv[1];
-	char buf[4096];
-
-	//printf("OLD PATH: %s\n", getenv("PATH"));
-
-	 if (snprintf(buf, sizeof(buf), "%s:%s", path_og, path_ng) >= sizeof(buf)) {
-        fprintf(stderr, "Erro: PATH muito comprido\n");
-		return;
-
+        convert_cmd();
+        
+        if (argv[0] == NULL) continue;
+        if (strcmp("run", argv[0]) == 0) {
+            if (argv[1] != NULL) {
+                batch(argv[1]);
+            } else {
+                fprintf(stderr, "Error: No batch file specified\n");
+            }
+        } else {
+            c_shell();
+        }
     }
-	 if (setenv("PATH", buf, 1) != 0) {
+
+    return 0;
+}
+
+void c_shell() {
+    if (argv[0] == NULL || strcmp("", argv[0]) == 0) return;
+
+    if (strcmp("exit", argv[0]) == 0) kill(0, SIGKILL);
+
+    if (strcmp("path", argv[0]) == 0) {
+        addpath(argv);
+        return;
+    }
+    
+    if (strcmp("cd", argv[0]) == 0) {
+        cdir(argv);
+        return;
+    }
+
+    pid = fork();
+    if (pid == -1) {
+        printf("Failed to create a child\n");
+    } else if (pid == 0) {
+        execvp(argv[0], argv);
+        perror("execvp failed");
+        exit(EXIT_FAILURE);
+    } else {
+        waitpid(pid, NULL, 0);
+    }
+}
+
+void get_cmd() {
+    printf("@: ");
+    if (fgets(cmd, MAX_SIZE_CMD, stdin) == NULL) {
+        perror("fgets");
+        exit(EXIT_FAILURE);
+    }
+
+    if ((strlen(cmd) > 0) && (cmd[strlen(cmd) - 1] == '\n'))
+        cmd[strlen(cmd) - 1] = '\0';
+}
+
+void convert_cmd() {
+    char *ptr;
+    i = 0;
+    ptr = strtok(cmd, " ");
+    while (ptr != NULL && i < MAX_SIZE_ARG - 1) {
+        argv[i] = ptr;
+        i++;
+        ptr = strtok(NULL, " ");
+    }
+    argv[i] = NULL;
+}
+
+void addpath(char *argv[]) {
+    const char *path_og = getenv("PATH");
+    const char *path_ng = argv[1];
+    char buf[4096];
+
+    if (path_ng == NULL) {
+        fprintf(stderr, "Error: No path specified\n");
+        return;
+    }
+
+    if (snprintf(buf, sizeof(buf), "%s:%s", path_og, path_ng) >= sizeof(buf)) {
+        fprintf(stderr, "Error: PATH too long\n");
+        return;
+    }
+
+    if (setenv("PATH", buf, 1) != 0) {
         perror("setenv");
         return;
     }
-	printf("%s adicionado ao path\n",path_ng);
-	//printf("NOVO PATH: %s\n", getenv("PATH"));
-	
+    printf("%s added to PATH\n", path_ng);
 }
 
-void cdir(char *argv[]){
-	const char *dir = argv[1];
-	if (chdir(dir) != 0) {
+void cdir(char *argv[]) {
+    const char *dir = argv[1];
+    if (dir == NULL) {
+        fprintf(stderr, "Error: No directory specified\n");
+        return;
+    }
+
+    if (chdir(dir) != 0) {
         perror("chdir");
-		return;
-	}
+        return;
+    }
+}
+
+void batch(const char *filename) {
+    FILE *bfile = fopen(filename, "r");
+    char line[1024];
+
+    if (bfile == NULL) {
+        perror("Error opening batch file");
+        return;
+    }
+
+    while (fgets(line, sizeof(line), bfile) != NULL) {
+        line[strcspn(line, "\n")] = '\0';
+        
+        if (line[0] == '\0' || line[0] == '#') {
+            continue;
+        }
+
+        strncpy(cmd, line, sizeof(cmd) - 1);
+        cmd[sizeof(cmd) - 1] = '\0';
+
+        convert_cmd();
+        c_shell();
+    }
+
+    fclose(bfile);
 }
