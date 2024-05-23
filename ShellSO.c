@@ -33,7 +33,7 @@ int main() {
             if (argv[1] != NULL) {
                 batch(argv[1]);
             } else {
-                fprintf(stderr, "Error: No batch file specified\n");
+                fprintf(stderr, "Erro, arquivo batch não especificado\n");
             }
         } else {
             c_shell();
@@ -60,10 +60,10 @@ void c_shell() {
 
     pid = fork();
     if (pid == -1) {
-        printf("Failed to create a child\n");
+        printf("Falha ao criar um filho (sucesso?)\n");
     } else if (pid == 0) {
         execvp(argv[0], argv);
-        perror("execvp failed");
+        perror("execvp falhou");
         exit(EXIT_FAILURE);
     } else {
         waitpid(pid, NULL, 0);
@@ -99,12 +99,12 @@ void addpath(char *argv[]) {
     char buf[4096];
 
     if (path_ng == NULL) {
-        fprintf(stderr, "Error: No path specified\n");
+        fprintf(stderr, "Erro, endereço não existe\n");
         return;
     }
 
     if (snprintf(buf, sizeof(buf), "%s:%s", path_og, path_ng) >= sizeof(buf)) {
-        fprintf(stderr, "Error: PATH too long\n");
+        fprintf(stderr, "Errorendereço mto comprido\n");
         return;
     }
 
@@ -118,7 +118,7 @@ void addpath(char *argv[]) {
 void cdir(char *argv[]) {
     const char *dir = argv[1];
     if (dir == NULL) {
-        fprintf(stderr, "Error: No directory specified\n");
+        fprintf(stderr, "Erro, diretório não existe. Cabeçudo\n");
         return;
     }
 
@@ -133,7 +133,7 @@ void batch(const char *filename) {
     char line[1024];
 
     if (bfile == NULL) {
-        perror("Error opening batch file");
+        perror("Erro ao abrir arquivo batch, vazio");
         return;
     }
 
