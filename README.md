@@ -1,12 +1,12 @@
 # ShellSO
 
 
-# Apenas executável do código.
+ Apenas executável do código.
 
-#Features prontas até então:
-#exit (parcialmente
-#cd
-#exec
+Features prontas até então:
+exit (parcialmente
+cd
+exec
 
 
-#more to come
+more to come
