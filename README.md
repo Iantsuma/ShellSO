@@ -1,12 +1,22 @@
 # ShellSO
 
+Executar em ambiente Linux (testado em ubuntu)
 
- Apenas executável do código.
+Funcionalidades básicas:
+-exit
+ Será printado uma mensagem de "Killed". Isso acontece porque qualquer processo (caso seja necessário) pode matar todo o programa.
+-cd
+-path
+-dir
 
-Features prontas até então:
-exit (parcialmente
-cd
-exec
+Executáveis:
+
+Para executáveis utilizar o ./
+
+Para arquivos bash utilizar run <endereço do arquivo e seu nome>
 
 
-more to come
+
+Por vir:
+
+funcionalidades extras
