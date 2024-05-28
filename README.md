@@ -35,6 +35,7 @@
    -args:
 
    -`-l` Lista características dos arquivos
+   
    -`-a` Show_All, mostra todos os arquivos, incluindo os ocultos
 
 ## Funcionamento do arquivo batch
