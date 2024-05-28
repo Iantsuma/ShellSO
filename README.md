@@ -24,6 +24,11 @@
   - `path <caminho> [<caminho> <caminho> ...]`: Define um novo path para o shell*.
 *O path utiliza o path local da variável de ambiente.
 
+##Funcionalidades Extras
+  ### cat
+
+  ### ls
+
 
 ## Funcionamento do arquivo batch
 - Para executar um arquivo batch utilize `run <arquivo batch>`
