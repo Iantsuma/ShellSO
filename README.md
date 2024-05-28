@@ -26,9 +26,15 @@
 
 ##Funcionalidades Extras
   ### cat
+    - Compilar: `gcc -o cat cat.c`
+    - Executar: `./cat <arquivo>`
 
   ### ls
-
+    - Compilar: `gcc -o ls ls.c`
+    - Execitar: `./ls <arg1> <arg2>`
+      -args:
+        -`-l` Lista características dos arquivos
+        -`-a` Show_All, mostra todos os arquivos, incluindo os ocultos
 
 ## Funcionamento do arquivo batch
 - Para executar um arquivo batch utilize `run <arquivo batch>`
